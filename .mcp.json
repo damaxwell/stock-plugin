@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "stock-prices": {
+      "command": "uv",
+      "args": [
+        "run",
+        "${CLAUDE_PLUGIN_ROOT}/stock_mcp_server.py"
+      ]
+    }
+  }
+}

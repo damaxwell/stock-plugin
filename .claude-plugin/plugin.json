@@ -1,0 +1,9 @@
+{
+  "name": "stock-prices",
+  "version": "0.1.1",
+  "description": "Look up historical stock opening and closing prices by ticker and date.",
+  "author": {
+    "name": "David Maxwell"
+  },
+  "keywords": ["stocks", "finance", "prices", "market"]
+}
