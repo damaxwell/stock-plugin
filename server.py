@@ -1,7 +1,7 @@
 
 import yfinance as yf
 from datetime import date, timedelta
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 mcp = FastMCP("Stock Prices")
 
