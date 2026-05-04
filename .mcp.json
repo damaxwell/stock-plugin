@@ -4,7 +4,9 @@
       "command": "uv",
       "args": [
         "run",
-        "${CLAUDE_PLUGIN_ROOT}/stock_mcp_server.py"
+        "--with-requirements", 
+        "${CLAUDE_PLUGIN_ROOT}/requirements.txt",
+        "${CLAUDE_PLUGIN_ROOT}/run_stdio.py"
       ]
     }
   }

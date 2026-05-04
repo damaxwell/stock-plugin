@@ -1,10 +1,4 @@
-# /// script
-# requires-python = ">=3.10"
-# dependencies = [
-#     "mcp>=1.0.0",
-#     "yfinance>=0.2.0",
-# ]
-# ///
+
 import yfinance as yf
 from datetime import date, timedelta
 from mcp.server.fastmcp import FastMCP
@@ -44,6 +38,3 @@ def get_stock_price_on_day(ticker: str, day: str) -> dict:
         "close": close_price,
         "percent_change": round((close_price - open_price) / open_price * 100, 2),
     }
-
-if __name__ == "__main__":
-    mcp.run()
