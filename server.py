@@ -15,26 +15,34 @@ def get_stock_price_on_day(ticker: str, day: str) -> dict:
         day: The date in YYYY-MM-DD format (e.g. '2024-03-15')
     
     Returns:
-        A dict with ticker, open, close, and percent_change. All price fields
+        A dict with ticker, open, close, previous trading day close and percent_change from previous close. All price fields
         are null if there was no trading on that day (weekend, holiday, etc).
-        percent_change is ((close - open) / open) * 100, rounded to 2 decimal places.
     """
     target = date.fromisoformat(day)
-    next_day = target + timedelta(days=1)
+    start_day = target + timedelta(days=-5)
+    end_day = target + timedelta(days=1)
 
     stock = yf.Ticker(ticker)
-    hist = stock.history(start=target.isoformat(), end=next_day.isoformat(), interval="1d")
+    hist = stock.history(start=start_day.isoformat(), end=end_day.isoformat(), interval="1d")
+    print(hist)
 
-    if hist.empty:
-        return {"ticker": ticker.upper(), "date": day, "open": None, "close": None, "percent_change": None}
+    record = {"ticker": ticker.upper(), "date": day, "open": None, "close": None, "previous": None, "percent_change": None}
 
-    row = hist.iloc[0]
-    open_price = round(row["Open"], 4)
-    close_price = round(row["Close"], 4)
-    return {
-        "ticker": ticker.upper(),
-        "date": day,
-        "open": open_price,
-        "close": close_price,
-        "percent_change": round((close_price - open_price) / open_price * 100, 2),
-    }
+    if len(hist) < 2:
+        return record
+    
+    prev_row = hist.iloc[-2]
+    final_row = hist.iloc[-1]
+
+    if final_row.name.date() != target:
+        return record
+
+    record["open"] = round(final_row["Open"], 4)
+    close_price = round(final_row["Close"], 4)
+    record["close"] = close_price
+    prev_price = round(prev_row["Close"], 4)
+    record["previous"] = prev_price
+    rel_change = (close_price - prev_price) / prev_price
+    record["percent_change"] = round(rel_change * 100.0, 4)
+
+    return record
