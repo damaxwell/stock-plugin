@@ -5,20 +5,7 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("Stock Prices")
 
-@mcp.tool()
-def get_stock_price_on_day(ticker: str, day: str) -> dict:
-    """
-    Get the opening and closing price of a stock on a specific day.
-    
-    Args:
-        ticker: The stock ticker symbol (e.g. 'AAPL', 'MSFT')
-        day: The date in YYYY-MM-DD format (e.g. '2024-03-15')
-    
-    Returns:
-        A dict with ticker, open, close, previous trading day close and percent_change from previous close. All price fields
-        are null if there was no trading on that day (weekend, holiday, etc).
-    """
-    target = date.fromisoformat(day)
+def _get_stock_price_on_day(ticker: str, day: str, target: date) -> dict:
     start_day = target + timedelta(days=-5)
     end_day = target + timedelta(days=1)
 
@@ -30,7 +17,7 @@ def get_stock_price_on_day(ticker: str, day: str) -> dict:
 
     if len(hist) < 2:
         return record
-    
+
     prev_row = hist.iloc[-2]
     final_row = hist.iloc[-1]
 
@@ -46,3 +33,21 @@ def get_stock_price_on_day(ticker: str, day: str) -> dict:
     record["percent_change"] = round(rel_change * 100.0, 4)
 
     return record
+
+
+@mcp.tool()
+def get_stock_price_on_day(tickers: list[str], day: str) -> dict[str, dict]:
+    """
+    Get the opening and closing price of one or more stocks on a specific day.
+
+    Args:
+        tickers: List of stock ticker symbols (e.g. ['AAPL', 'MSFT'])
+        day: The date in YYYY-MM-DD format (e.g. '2024-03-15')
+
+    Returns:
+        A dict keyed by ticker symbol. Each value has ticker, open, close, previous trading day
+        close, and percent_change from previous close. All price fields are null if there was no
+        trading on that day (weekend, holiday, etc).
+    """
+    target = date.fromisoformat(day)
+    return {ticker.upper(): _get_stock_price_on_day(ticker, day, target) for ticker in tickers}
