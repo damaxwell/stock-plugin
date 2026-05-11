@@ -1,10 +1,13 @@
 # Stock Prices Plugin
 
-Look up historical stock opening and closing prices by ticker symbol and date.
+Look up historical stock opening and closing prices by ticker symbol — for a single day or across a date range.
 
 ## What it does
 
-Provides a `get_stock_price_on_day` tool (via Yahoo Finance) that returns the opening and closing price for any publicly traded stock on a given trading day.
+Provides two tools via Yahoo Finance:
+
+- **`get_stock_price_on_day`** — returns the open, close, and percent change for one or more tickers on a given trading day (or the most recent trading day before it)
+- **`get_price_history`** — returns daily open and close prices for one or more tickers over a date range, keyed by date then ticker
 
 ## Requirements
 
@@ -18,9 +21,11 @@ Ask Claude naturally:
 - "What was Apple stock on March 15, 2024?"
 - "Get me the price of MSFT on 2023-11-01"
 - "How much was TSLA on last Friday?"
+- "Show me VOO and AVUS prices from April 1 to April 30, 2026"
+- "Give me the price history for AAPL over the past month"
 
-If the market was closed on the requested date, Claude will say so and offer to check an adjacent trading day.
+If the market was closed on the requested date, Claude will note the actual trading day used.
 
 ## MCP Server
 
-The plugin runs `stock_mcp_server.py` via `uv run`, which handles dependency installation automatically on first run (`mcp`, `yfinance`). No separate setup step is needed.
+The plugin runs via `uv run`, which handles dependency installation automatically on first run. No separate setup step is needed.
