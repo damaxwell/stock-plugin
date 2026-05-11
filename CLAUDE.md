@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A Claude Code plugin that provides a `get_stock_price_on_day` MCP tool backed by Yahoo Finance. It runs as either a stdio MCP server (for local plugin use) or an HTTP server (for deployment).
+A Claude Code plugin that provides MCP tools for historical stock prices backed by Yahoo Finance. It runs as either a stdio MCP server (for local plugin use) or an HTTP server (for deployment).
+
+- `get_stock_price_on_day` — price for one or more tickers on a single day
+- `get_price_history` — open/close prices for one or more tickers over a date range
 
 ## Commands
 
@@ -37,8 +40,12 @@ The server uses [FastMCP](https://github.com/jlowin/fastmcp) and [yfinance](http
 - `make` zips the required source files into `stock-prices.plugin` for distribution
 
 **Skill** ([`skills/stock-lookup/SKILL.md`](skills/stock-lookup/SKILL.md)):
-Defines when and how Claude invokes the tool — handles ambiguous dates, null responses (market closed), multi-ticker queries, and response formatting.
+Defines when and how Claude invokes the tools — handles ambiguous dates, null responses (market closed), multi-ticker queries, date range requests, and response formatting.
 
 ## Key behavior in `get_stock_price_on_day`
 
 The tool fetches a 5-day window ending the day after the target date and uses the last row, which is the most recent trading day on or before the requested date. The returned `date` field reflects the actual trading day used, which may differ from the requested date (e.g. a weekend request returns the preceding Friday). All price fields are `null` only when no data is found (e.g. invalid ticker). Percent change is relative to the previous trading day's close (not the open).
+
+## Key behavior in `get_price_history`
+
+The tool calls yfinance with `start` and `end` passed directly, so `end` is exclusive (standard yfinance semantics). Returns a dict keyed by date string (`YYYY-MM-DD`), then by ticker symbol, with `open` and `close` for each. Only actual trading days appear in the output; weekends and holidays are omitted.

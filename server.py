@@ -2,6 +2,7 @@
 import yfinance as yf
 from datetime import date, timedelta
 from fastmcp import FastMCP
+from collections import defaultdict
 
 mcp = FastMCP("Stock Prices")
 
@@ -51,3 +52,30 @@ def get_stock_price_on_day(tickers: list[str], day: str) -> dict[str, dict]:
     """
     target = date.fromisoformat(day)
     return {ticker.upper(): _get_stock_price_on_day(ticker, target) for ticker in tickers}
+
+
+@mcp.tool()
+def get_price_history(tickers: list[str], start: str, end: str) -> dict[str, dict[str, dict]]:
+    """
+    Get daily open and close prices for one or more stocks over a date range.
+
+    Args:
+        tickers: List of stock ticker symbols (e.g. ['VOO', 'AVUS'])
+        start: Start date in YYYY-MM-DD format (inclusive)
+        end: End date in YYYY-MM-DD format (exclusive, same semantics as yfinance)
+
+    Returns:
+        A dict keyed by date (YYYY-MM-DD), then by ticker symbol. Each value has open and close
+        prices. Only trading days with data are included.
+    """
+    result = defaultdict(dict)
+    for ticker in tickers:
+        symbol = ticker.upper()
+        hist = yf.Ticker(ticker).history(start=start, end=end, interval="1d")
+        for ts, row in hist.iterrows():
+            day_str = ts.date().isoformat()
+            result[day_str][symbol] = {
+                "open": round(row["Open"], 4),
+                "close": round(row["Close"], 4),
+            }
+    return dict(result)
