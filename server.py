@@ -12,7 +12,6 @@ def _get_stock_price_on_day(ticker: str, target: date) -> dict:
 
     stock = yf.Ticker(ticker)
     hist = stock.history(start=start_day.isoformat(), end=end_day.isoformat(), interval="1d")
-    print(hist)
 
     record = {"ticker": ticker.upper(), "date": None, "open": None, "close": None, "previous": None, "percent_change": None}
 
@@ -50,7 +49,9 @@ def get_stock_price_on_day(tickers: list[str], day: str) -> dict[str, dict]:
         the preceding Friday's data is returned). All price fields are null only if no trading
         data could be found (e.g. invalid ticker).
     """
+    print("get_stock_price_on_day " + str(tickers))
     target = date.fromisoformat(day)
+    print("get_stock_price_on_day done")
     return {ticker.upper(): _get_stock_price_on_day(ticker, target) for ticker in tickers}
 
 
@@ -68,6 +69,7 @@ def get_price_history(tickers: list[str], start: str, end: str) -> dict[str, dic
         A dict keyed by date (YYYY-MM-DD), then by ticker symbol. Each value has open and close
         prices. Only trading days with data are included.
     """
+    print("get_price_history " + str(tickers))
     result = defaultdict(dict)
     for ticker in tickers:
         symbol = ticker.upper()
@@ -78,4 +80,5 @@ def get_price_history(tickers: list[str], start: str, end: str) -> dict[str, dic
                 "open": round(row["Open"], 4),
                 "close": round(row["Close"], 4),
             }
+    print("get_price_history done")
     return dict(result)
