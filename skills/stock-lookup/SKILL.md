@@ -15,11 +15,15 @@ When the user asks for a stock price on a specific date:
 2. Call `get_stock_price_on_day` with a list of tickers and the date. Always pass tickers as a list, even for a single ticker.
 
 3. Interpret the result — it is a dict keyed by ticker symbol:
-   - If a ticker's `open` and `close` are both `null`, the market was closed on that date (weekend or holiday). Say so clearly and offer to look up the nearest trading day.
+   - The returned `date` is the most recent trading day on or before the requested date. If the requested date was a weekend or holiday, the `date` field will differ — mention this to the user.
+   - If `open` and `close` are both `null`, no data could be found (e.g. invalid ticker). Say so clearly.
    - If both are present, report the opening price, closing price, and percent change. Use `percent_change` directly from the tool — do not recalculate it.
 
 4. Format the response concisely. Example:
    > **AAPL on 2024-03-15**: opened at $172.77, closed at $173.72 (+0.55%)
+
+   If the returned date differs from the requested date:
+   > **AAPL** (most recent trading day: 2024-03-14): opened at $172.77, closed at $173.72 (+0.55%)
 
 5. If the user asks about multiple tickers for the same date, pass them all in a single call. Summarize results in a table if there are three or more tickers. For different dates, make one call per date.
 

@@ -5,7 +5,7 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("Stock Prices")
 
-def _get_stock_price_on_day(ticker: str, day: str, target: date) -> dict:
+def _get_stock_price_on_day(ticker: str, target: date) -> dict:
     start_day = target + timedelta(days=-5)
     end_day = target + timedelta(days=1)
 
@@ -13,7 +13,7 @@ def _get_stock_price_on_day(ticker: str, day: str, target: date) -> dict:
     hist = stock.history(start=start_day.isoformat(), end=end_day.isoformat(), interval="1d")
     print(hist)
 
-    record = {"ticker": ticker.upper(), "date": day, "open": None, "close": None, "previous": None, "percent_change": None}
+    record = {"ticker": ticker.upper(), "date": None, "open": None, "close": None, "previous": None, "percent_change": None}
 
     if len(hist) < 2:
         return record
@@ -21,9 +21,7 @@ def _get_stock_price_on_day(ticker: str, day: str, target: date) -> dict:
     prev_row = hist.iloc[-2]
     final_row = hist.iloc[-1]
 
-    if final_row.name.date() != target:
-        return record
-
+    record["date"] = final_row.name.date().isoformat()
     record["open"] = round(final_row["Open"], 4)
     close_price = round(final_row["Close"], 4)
     record["close"] = close_price
@@ -38,16 +36,18 @@ def _get_stock_price_on_day(ticker: str, day: str, target: date) -> dict:
 @mcp.tool()
 def get_stock_price_on_day(tickers: list[str], day: str) -> dict[str, dict]:
     """
-    Get the opening and closing price of one or more stocks on a specific day.
+    Get the opening and closing price of one or more stocks on or before a specific day.
 
     Args:
         tickers: List of stock ticker symbols (e.g. ['AAPL', 'MSFT'])
         day: The date in YYYY-MM-DD format (e.g. '2024-03-15')
 
     Returns:
-        A dict keyed by ticker symbol. Each value has ticker, open, close, previous trading day
-        close, and percent_change from previous close. All price fields are null if there was no
-        trading on that day (weekend, holiday, etc).
+        A dict keyed by ticker symbol. Each value has ticker, date, open, close, previous trading
+        day close, and percent_change from previous close. The returned date is the most recent
+        trading day on or before the requested day (e.g. if a weekend or holiday is requested,
+        the preceding Friday's data is returned). All price fields are null only if no trading
+        data could be found (e.g. invalid ticker).
     """
     target = date.fromisoformat(day)
-    return {ticker.upper(): _get_stock_price_on_day(ticker, day, target) for ticker in tickers}
+    return {ticker.upper(): _get_stock_price_on_day(ticker, target) for ticker in tickers}
