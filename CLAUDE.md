@@ -41,4 +41,4 @@ Defines when and how Claude invokes the tool — handles ambiguous dates, null r
 
 ## Key behavior in `get_stock_price_on_day`
 
-The tool fetches a 5-day window ending the day after the target date, then checks if the last row matches the requested date. If the market was closed (weekend/holiday), all price fields return `null`. Percent change is relative to the previous trading day's close (not the open).
+The tool fetches a 5-day window ending the day after the target date and uses the last row, which is the most recent trading day on or before the requested date. The returned `date` field reflects the actual trading day used, which may differ from the requested date (e.g. a weekend request returns the preceding Friday). All price fields are `null` only when no data is found (e.g. invalid ticker). Percent change is relative to the previous trading day's close (not the open).
