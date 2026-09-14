@@ -43,11 +43,21 @@ def get_stock_price_on_day(tickers: list[str], day: str) -> dict[str, dict]:
         day: The date in YYYY-MM-DD format (e.g. '2024-03-15')
 
     Returns:
-        A dict keyed by ticker symbol. Each value has ticker, date, open, close, previous trading
-        day close, and percent_change from previous close. The returned date is the most recent
-        trading day on or before the requested day (e.g. if a weekend or holiday is requested,
-        the preceding Friday's data is returned). All price fields are null only if no trading
-        data could be found (e.g. invalid ticker).
+        A dict keyed by ticker symbol (uppercased). Each value contains:
+          - ticker: the normalized symbol
+          - date: the actual trading day used — the most recent trading day on or before the
+            requested day. If a weekend or holiday is requested, this will differ from `day`
+            (e.g. a Monday request after a holiday returns the prior Friday).
+          - open: opening price on `date`
+          - close: closing price on `date`
+          - previous: closing price of the trading day immediately before `date` (the prior
+            session's close, not the open of `date`)
+          - percent_change: percentage change from `previous` to `close` — use this value
+            directly; do not recalculate it from open/close
+
+        All fields except `ticker` are null when no data is available. This occurs when the
+        ticker is invalid OR when fewer than two trading days exist in the 5-day lookup window
+        (e.g. the requested date is very early in the ticker's trading history).
     """
     print("get_stock_price_on_day " + str(tickers))
     target = date.fromisoformat(day)
@@ -63,11 +73,26 @@ def get_price_history(tickers: list[str], start: str, end: str) -> dict[str, dic
     Args:
         tickers: List of stock ticker symbols (e.g. ['VOO', 'AVUS'])
         start: Start date in YYYY-MM-DD format (inclusive)
-        end: End date in YYYY-MM-DD format (exclusive, same semantics as yfinance)
+        end: End date in YYYY-MM-DD format (exclusive — to include e.g. April 30, pass
+             end='2026-05-01'; same semantics as yfinance)
 
     Returns:
-        A dict keyed by date (YYYY-MM-DD), then by ticker symbol. Each value has open and close
-        prices. Only trading days with data are included.
+        A dict keyed by date string (YYYY-MM-DD), then by ticker symbol (uppercased). Each
+        leaf value has:
+          - open: opening price on that date
+          - close: closing price on that date
+
+        Only actual trading days appear; weekends and market holidays are omitted. Example:
+          {
+            "2026-04-10": {
+              "VOO":  {"open": 626.33, "close": 628.50},
+              "AVUS": {"open": 94.50,  "close": 95.00}
+            },
+            "2026-04-13": {
+              "VOO":  {"open": 619.00, "close": 622.75},
+              "AVUS": {"open": 93.00,  "close": 94.50}
+            }
+          }
     """
     print("get_price_history " + str(tickers))
     result = defaultdict(dict)
